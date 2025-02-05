@@ -5,7 +5,9 @@ import math
 import os
 import random
 import sys
+import h5py
 import braceexpand
+from pathlib import Path
 from dataclasses import dataclass
 from multiprocessing import Value
 
@@ -44,6 +46,24 @@ class CsvDataset(Dataset):
     def __getitem__(self, idx):
         images = self.transforms(Image.open(str(self.images[idx])))
         texts = self.tokenize([str(self.captions[idx])])[0]
+        return images, texts
+
+
+class H5Dataset(Dataset):
+    def __init__(self, input_filename, transforms):
+        logging.debug(f'Loading h5py data from {input_filename}.')
+
+        self.images = h5py.File(Path(input_filename) / "images.hdf5", "r")["images"]
+        self.captions = h5py.File(Path(input_filename) / "codes_ours.hdf5", "r")["ivs"]
+        self.transforms = transforms
+        logging.debug('Done loading data.')
+
+    def __len__(self):
+        return len(self.captions)
+    
+    def __getitem__(self, idx):
+        images = self.transforms(self.images[idx])
+        texts = self.captions[idx]
         return images, texts
 
 
@@ -473,6 +493,32 @@ def get_csv_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
     return DataInfo(dataloader, sampler)
 
 
+def get_h5_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
+    input_filename = args.train_data if is_train else args.val_data
+    assert input_filename
+    dataset = H5Dataset(
+        input_filename,
+        transforms=preprocess_fn
+    )
+    num_samples = len(dataset)
+    sampler = DistributedSampler(dataset) if args.distributed and is_train else None
+    shuffle = is_train and sampler is None
+
+    dataloader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=shuffle,
+        num_workers=args.workers,
+        pin_memory=True,
+        sampler=sampler,
+        drop_last=is_train,
+    )
+    dataloader.num_samples = num_samples
+    dataloader.num_batches = len(dataloader)
+    
+    return DataInfo(dataloader, sampler)
+
+
 class SyntheticDataset(Dataset):
 
     def __init__(
@@ -530,6 +576,8 @@ def get_dataset_fn(data_path, dataset_type):
         return get_csv_dataset
     elif dataset_type == "synthetic":
         return get_synthetic_dataset
+    elif dataset_type == "h5":
+        return get_h5_dataset
     elif dataset_type == "auto":
         ext = data_path.split('.')[-1]
         if ext in ['csv', 'tsv']:
