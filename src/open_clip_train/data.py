@@ -62,7 +62,7 @@ class H5Dataset(Dataset):
         return len(self.captions)
     
     def __getitem__(self, idx):
-        images = self.transforms(torch.from_numpy(self.images[idx]))
+        images = self.transforms(Image.fromarray(np.transpose(self.images[idx], (1, 2, 0))))
         texts = self.captions[idx]
         return images, torch.from_numpy(texts)
 
