@@ -62,9 +62,9 @@ class H5Dataset(Dataset):
         return len(self.captions)
     
     def __getitem__(self, idx):
-        images = self.transforms(self.images[idx])
+        images = self.transforms(torch.from_numpy(self.images[idx]))
         texts = self.captions[idx]
-        return torch.from_numpy(images), torch.from_numpy(texts)
+        return images, torch.from_numpy(texts)
 
 
 class SharedEpoch:
