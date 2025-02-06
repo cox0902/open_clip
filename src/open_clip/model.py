@@ -30,7 +30,7 @@ class CLIPVisionCfg:
     head_width: int = 64
     mlp_ratio: float = 4.0
     patch_size: int = 16
-    image_size: Union[Tuple[int, int], int] = 224
+    image_size: Union[Tuple[int, int], int] = 256  # 224
 
     ls_init_value: Optional[float] = None  # layer scale initial value
     patch_dropout: float = 0.  # what fraction of patches to dropout during training (0 would mean disabled and no patches dropped) - 0.5 to 0.75 recommended in the paper for optimal results
