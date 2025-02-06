@@ -90,8 +90,7 @@ class H5Dataset(Dataset):
                     self.labels[:, 1] == pid
                 ))
                 assert len(loc[0]) == 1
-                rect = self.rects[loc[0]]
-                print(rect.shape)
+                rect = self.rects[loc[0]][0]
             else:
                 rect = (0, 0, 255, 255)
 
