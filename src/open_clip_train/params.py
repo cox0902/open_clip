@@ -72,6 +72,12 @@ def parse_args(args):
         help="Context length for text encoder."
     )
     parser.add_argument(
+        "--add-channel",
+        default=False,
+        action="store_true",
+        help="Add the 4-th channel."
+    )
+    parser.add_argument(
         "--dataset-resampled",
         default=False,
         action="store_true",

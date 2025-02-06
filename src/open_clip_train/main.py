@@ -241,6 +241,16 @@ def main(args):
         cache_dir=args.cache_dir,
         **model_kwargs,
     )
+    
+    if args.add_channel:
+        assert model.visual.__class__.__name__ == "ModifiedResNet"
+        old_conv1 = model.visual.conv1
+        bias = old_conv1.bias is not None
+        new_conv1 = torch.nn.Conv2d(in_channels=4, out_channels=old_conv1.out_channels, 
+                                    kernel_size=old_conv1.kernel_size, stride=old_conv1.stride, 
+                                    padding=old_conv1.padding, bias=bias)
+        model.visual.conv1 = new_conv1
+        
     if args.distill:
         # FIXME: currently assumes the model you're distilling from has the same tokenizer & transforms.
         dist_model, _, _ = create_model_and_transforms(

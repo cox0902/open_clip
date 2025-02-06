@@ -54,11 +54,17 @@ class H5Dataset(Dataset):
         logging.debug(f'Loading h5py data from {input_filename}.')
 
         input_filepath = Path(input_filename).parent
-
-        self.images = h5py.File(input_filepath / "images.hdf5", "r")["images"]
+        hi = h5py.File(input_filepath / "images.hdf5", "r")
+        self.images = hi["images"]
         hc = h5py.File(Path(input_filename), "r")
         logging.debug(f"-- max_len = {hc.attrs['max_len']}")
         self.captions = hc["ivs"]  # "codes_ours.hdf5"
+        self.is_short = (self.images.shape[0] < self.captions.shape[0])
+        if self.is_short:
+            self.labels = hi["labels"]
+            self.rects = hi["rects"]
+            self.idx = hc["idx"]
+            self.pid = hc["pid"]
         self.transforms = transforms
         logging.debug(f'Done loading data {len(self)}.')
 
@@ -66,7 +72,30 @@ class H5Dataset(Dataset):
         return len(self.captions)
     
     def __getitem__(self, idx):
-        images = self.transforms(Image.fromarray(np.transpose(self.images[idx], (1, 2, 0))))
+        img_idx = idx if not self.is_short else self.idx[idx]
+        images = self.transforms(Image.fromarray(np.transpose(self.images[img_idx], (1, 2, 0))))
+        assert images.shape[0] == 3 and images.shape[1] == 256 and images.shape[2] == 256
+
+        if self.is_short:
+            pid = self.pid[idx]
+            if pid != -1:
+                loc = np.where(np.logical_and(
+                    self.labels[:, 0] == img_idx,
+                    self.labels[:, 1] == pid
+                ))
+                assert len(loc[0]) == 1
+                rect = self.rects[loc[0]]
+            else:
+                rect = (0, 0, 255, 255)
+
+            mask = np.zeros((256, 256), dtype=np.float32)
+            x0, y0, x1, y1 = np.clip(rect, 0, 255)
+            x0, y0, x1, y1 = int(x0), int(y0), int(x1), int(y1)
+            mask[y0:y1 + 1, x0:x1 + 1] = 1.0
+
+            mask = torch.FloatTensor(mask).unsqueeze(0)
+            images = torch.cat([images, mask], dim=0)
+
         texts = self.captions[idx]
         return images, torch.from_numpy(texts)
 
