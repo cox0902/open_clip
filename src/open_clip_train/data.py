@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torchvision.datasets as datasets
+import torchvision.transforms.v2 as T
 import webdataset as wds
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler, IterableDataset, get_worker_info
@@ -50,7 +51,7 @@ class CsvDataset(Dataset):
 
 
 class H5Dataset(Dataset):
-    def __init__(self, input_filename, transforms):
+    def __init__(self, input_filename, transforms=None):
         logging.debug(f'Loading h5py data from {input_filename}.')
 
         input_filepath = Path(input_filename).parent
@@ -65,7 +66,11 @@ class H5Dataset(Dataset):
             self.rects = hi["rects"]
             self.idx = hc["idx"]
             self.pid = hc["pid"]
-        self.transforms = transforms
+        self.transforms = T.Compose([
+            T.ToDtype(torch.float, scale=True),
+            T.Normalize(mean=(0.48145466, 0.4578275, 0.40821073), std=(0.26862954, 0.26130258, 0.27577711)),
+            T.ToPureTensor()
+        ])
         logging.debug(f'Done loading data {len(self)}.')
 
     def __len__(self):
@@ -531,7 +536,7 @@ def get_h5_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
     assert input_filename
     dataset = H5Dataset(
         input_filename,
-        transforms=preprocess_fn
+        # transforms=preprocess_fn
     )
     num_samples = len(dataset)
     sampler = DistributedSampler(dataset) if args.distributed and is_train else None
