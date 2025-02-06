@@ -231,6 +231,7 @@ def create_model(
         output_dict: Optional[bool] = None,
         require_pretrained: bool = False,
         load_weights_only: bool = True,
+        add_channel: bool = False,
         **model_kwargs,
 ):
     """Creates and configures a contrastive vision-language model.
@@ -346,6 +347,15 @@ def create_model(
             model = CustomTextCLIP(**model_cfg, cast_dtype=cast_dtype)
     else:
         model = CLIP(**model_cfg, cast_dtype=cast_dtype)
+
+    if add_channel:
+        assert model.visual.__class__.__name__ == "ModifiedResNet"
+        old_conv1 = model.visual.conv1
+        bias = old_conv1.bias is not None
+        new_conv1 = torch.nn.Conv2d(in_channels=4, out_channels=old_conv1.out_channels, 
+                                    kernel_size=old_conv1.kernel_size, stride=old_conv1.stride, 
+                                    padding=old_conv1.padding, bias=bias)
+        model.visual.conv1 = new_conv1
 
     if precision in ("fp16", "bf16"):
         dtype = torch.float16 if 'fp16' in precision else torch.bfloat16
@@ -486,6 +496,7 @@ def create_model_and_transforms(
         cache_dir: Optional[str] = None,
         output_dict: Optional[bool] = None,
         load_weights_only: bool = True,
+        add_channel: bool = False,
         **model_kwargs,
 ):
     force_preprocess_cfg = merge_preprocess_kwargs(
@@ -513,6 +524,7 @@ def create_model_and_transforms(
         cache_dir=cache_dir,
         output_dict=output_dict,
         load_weights_only=load_weights_only,
+        add_channel=add_channel,
         **model_kwargs,
     )
 
