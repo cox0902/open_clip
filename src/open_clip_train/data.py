@@ -56,7 +56,9 @@ class H5Dataset(Dataset):
         input_filepath = Path(input_filename).parent
 
         self.images = h5py.File(input_filepath / "images.hdf5", "r")["images"]
-        self.captions = h5py.File(Path(input_filename), "r")["ivs"]  # "codes_ours.hdf5"
+        hc = h5py.File(Path(input_filename), "r")
+        print(f"-- max_len = {hc['max_len']}")
+        self.captions = hc["ivs"]  # "codes_ours.hdf5"
         self.transforms = transforms
         logging.debug(f'Done loading data {len(self)}.')
 
