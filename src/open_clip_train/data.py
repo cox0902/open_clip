@@ -68,6 +68,7 @@ class H5Dataset(Dataset):
             self.pid = hc["pid"]
         self.transforms = T.Compose([
             T.ToDtype(torch.float, scale=True),
+            # T.ToTensor(),
             T.Normalize(mean=(0.48145466, 0.4578275, 0.40821073), std=(0.26862954, 0.26130258, 0.27577711)),
             T.ToPureTensor()
         ])
@@ -79,7 +80,7 @@ class H5Dataset(Dataset):
     def __getitem__(self, idx):
         img_idx = idx if not self.is_short else self.idx[idx]
         # images = self.transforms(Image.fromarray(np.transpose(self.images[img_idx], (1, 2, 0))))
-        images = self.transforms(self.images[img_idx])
+        images = self.transforms(torch.from_numpy(self.images[img_idx]))
         assert images.shape[0] == 3 and images.shape[1] == 256 and images.shape[2] == 256, images.shape
 
         if self.is_short:
