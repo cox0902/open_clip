@@ -57,7 +57,7 @@ class CLIPVisionCfg:
 @dataclass
 class CLIPTextCfg:
     context_length: int = 77
-    vocab_size: int = 49408
+    vocab_size: int = 90  # 49408
     hf_tokenizer_name: Optional[str] = None
     tokenizer_kwargs: Optional[dict] = None
 

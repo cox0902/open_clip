@@ -230,6 +230,7 @@ def main(args):
         force_custom_text=args.force_custom_text,
         force_patch_dropout=args.force_patch_dropout,
         force_image_size=args.force_image_size,
+        force_context_length=args.context_length,
         image_mean=args.image_mean,
         image_std=args.image_std,
         image_interpolation=args.image_interpolation,

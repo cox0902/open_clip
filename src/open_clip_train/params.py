@@ -66,6 +66,12 @@ def parse_args(args):
         help="Which type of dataset to process."
     )
     parser.add_argument(
+        "--context-length",
+        type=int,
+        default=None,
+        help="Context length for text encoder."
+    )
+    parser.add_argument(
         "--dataset-resampled",
         default=False,
         action="store_true",

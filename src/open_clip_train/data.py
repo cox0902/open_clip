@@ -53,8 +53,10 @@ class H5Dataset(Dataset):
     def __init__(self, input_filename, transforms):
         logging.debug(f'Loading h5py data from {input_filename}.')
 
-        self.images = h5py.File(Path(input_filename) / "images.hdf5", "r")["images"]
-        self.captions = h5py.File(Path(input_filename) / "codes_ours.hdf5", "r")["ivs"]
+        input_filepath = Path(input_filename).parent
+
+        self.images = h5py.File(input_filepath / "images.hdf5", "r")["images"]
+        self.captions = h5py.File(Path(input_filename), "r")["ivs"]  # "codes_ours.hdf5"
         self.transforms = transforms
         logging.debug('Done loading data.')
 

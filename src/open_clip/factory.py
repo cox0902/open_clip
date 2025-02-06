@@ -224,6 +224,7 @@ def create_model(
         force_patch_dropout: Optional[float] = None,
         force_image_size: Optional[Union[int, Tuple[int, int]]] = None,
         force_preprocess_cfg: Optional[Dict[str, Any]] = None,
+        force_context_length: Optional[int] = None,
         pretrained_image: bool = False,
         pretrained_hf: bool = True,
         cache_dir: Optional[str] = None,
@@ -317,6 +318,9 @@ def create_model(
     if force_image_size is not None:
         # override model config's image size
         model_cfg["vision_cfg"]["image_size"] = force_image_size
+
+    if force_context_length is not None:
+        model_cfg["text_cfg"]["context_length"] = force_context_length
 
     is_timm_model = 'timm_model_name' in model_cfg.get('vision_cfg', {})
     if pretrained_image:
@@ -471,6 +475,7 @@ def create_model_and_transforms(
         force_custom_text: bool = False,
         force_patch_dropout: Optional[float] = None,
         force_image_size: Optional[Union[int, Tuple[int, int]]] = None,
+        force_context_length: Optional[int] = None,
         image_mean: Optional[Tuple[float, ...]] = None,
         image_std: Optional[Tuple[float, ...]] = None,
         image_interpolation: Optional[str] = None,
@@ -502,6 +507,7 @@ def create_model_and_transforms(
         force_patch_dropout=force_patch_dropout,
         force_image_size=force_image_size,
         force_preprocess_cfg=force_preprocess_cfg,
+        force_context_length=force_context_length,
         pretrained_image=pretrained_image,
         pretrained_hf=pretrained_hf,
         cache_dir=cache_dir,
@@ -534,6 +540,7 @@ def create_model_from_pretrained(
         force_quick_gelu: bool = False,
         force_custom_text: bool = False,
         force_image_size: Optional[Union[int, Tuple[int, int]]] = None,
+        force_context_length: Optional[int] = None,
         image_mean: Optional[Tuple[float, ...]] = None,
         image_std: Optional[Tuple[float, ...]] = None,
         image_interpolation: Optional[str] = None,
@@ -561,6 +568,7 @@ def create_model_from_pretrained(
         force_custom_text=force_custom_text,
         force_image_size=force_image_size,
         force_preprocess_cfg=force_preprocess_cfg,
+        force_context_length=force_context_length,
         cache_dir=cache_dir,
         require_pretrained=True,
         load_weights_only=load_weights_only,
