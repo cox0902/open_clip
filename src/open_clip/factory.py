@@ -560,6 +560,7 @@ def create_model_from_pretrained(
         return_transform: bool = True,
         cache_dir: Optional[str] = None,
         load_weights_only: bool = True,
+        add_channel: bool = False,
         **model_kwargs,
 ):
     force_preprocess_cfg = merge_preprocess_kwargs(
@@ -584,6 +585,7 @@ def create_model_from_pretrained(
         cache_dir=cache_dir,
         require_pretrained=True,
         load_weights_only=load_weights_only,
+        add_channel=add_channel,
         **model_kwargs,
     )
 
