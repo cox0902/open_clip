@@ -61,11 +61,14 @@ class H5Dataset(Dataset):
         logging.debug(f"-- max_len = {hc.attrs['max_len']}")
         self.captions = hc["ivs"]  # "codes_ours.hdf5"
         self.is_short = (self.images.shape[0] < self.captions.shape[0])
+        self.is_large = (self.images.shape[0] > self.captions.shape[0])
         if self.is_short:
             self.labels = hi["labels"]
             self.rects = hi["rects"]
             self.idx = hc["idx"]
             self.pid = hc["pid"]
+        elif self.is_large:
+            self.idx = hc["idx"]
         self.transforms = T.Compose([
             T.ToDtype(torch.float, scale=True),
             # T.ToTensor(),
@@ -78,7 +81,10 @@ class H5Dataset(Dataset):
         return len(self.captions)
     
     def __getitem__(self, idx):
-        img_idx = idx if not self.is_short else self.idx[idx]
+        if self.is_short or self.is_large:
+            img_idx = self.idx[idx]
+        else:
+            img_idx = idx 
         # images = self.transforms(Image.fromarray(np.transpose(self.images[img_idx], (1, 2, 0))))
         images = self.transforms(torch.from_numpy(self.images[img_idx]))
         assert images.shape[0] == 3 and images.shape[1] == 256 and images.shape[2] == 256, images.shape
